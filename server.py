@@ -6,12 +6,31 @@ from llama_index.core import VectorStoreIndex, Document
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import requests
 
+# Load Firebase credentials from Streamlit secrets
+firebase_secrets = st.secrets["firebase_credentials"]
+cred_dict = {
+    "type": firebase_secrets["type"],
+    "project_id": firebase_secrets["project_id"],
+    "private_key_id": firebase_secrets["private_key_id"],
+    "private_key": firebase_secrets["private_key"],
+    "client_email": firebase_secrets["client_email"],
+    "client_id": firebase_secrets["client_id"],
+    "auth_uri": firebase_secrets["auth_uri"],
+    "token_uri": firebase_secrets["token_uri"],
+    "auth_provider_x509_cert_url": firebase_secrets["auth_provider_x509_cert_url"],
+    "client_x509_cert_url": firebase_secrets["client_x509_cert_url"],
+    "universe_domain": firebase_secrets["universe_domain"]
+}
+
 # Initialize Firebase
 if not firebase_admin._apps:
-    cred = credentials.Certificate("artistai-865da-firebase-adminsdk-fbsvc-5095615761.json")  # Replace with your Firebase credentials JSON file
+    cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 collection_name = "game_data"  # Firestore collection for storing data
+
+# Load Groq API key from Streamlit secrets
+groq_api_key = st.secrets["groq"]["api_key"]
 
 # Initialize LlamaIndex embedding model
 embedding_model = HuggingFaceEmbedding(model_name="all-MiniLM-L6-v2")
@@ -145,7 +164,7 @@ def chat_with_bot(user_message, data_text, last_location=None):
         prompt = f"Relevant Information:\n{retrieved_context}\n\nUser Query:\n{prompt}"
 
     # API Configuration
-    api_key = "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"  # Replace with your actual API key
+    api_key = groq_api_key  # Use the API key from Streamlit secrets
     url = "https://api.groq.com/openai/v1/chat/completions"
     model_id = "llama3-8b-8192"
 
